@@ -23,7 +23,6 @@ export default {
   },
   async mounted() {
     try {
-      // Busca os sistemas vinculados ao funcionário pelo endpoint específico
       const res = await axios.get(`${API_BASE_URL}/funcionarios/${this.funcionarioId}/sistemas`);
       this.sistemas = res.data;
     } catch (error) {

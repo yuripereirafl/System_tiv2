@@ -4,6 +4,7 @@ from pydantic import BaseModel
 from app.schemas.sistema import Sistema
 from app.schemas.setor import SetorOut
 from app.schemas.grupo_email import GrupoEmailOut
+from .grupo_pasta import GrupoPastaOut
 
 class FuncionarioBase(BaseModel):
     nome: str
@@ -11,9 +12,12 @@ class FuncionarioBase(BaseModel):
     setores_ids: List[int] = []
     sistemas_ids: List[int] = []
     grupos_email_ids: List[int] = []
+    grupos_pasta_ids: List[int] = []
     celular: str
     cargo: str = ''
     email: str
+    data_inclusao: str = ''
+    data_inativado: str = ''
 
 class FuncionarioCreate(FuncionarioBase):
     pass
@@ -23,6 +27,8 @@ class Funcionario(FuncionarioBase):
     setores: List[SetorOut] = []
     sistemas: List[Sistema] = []
     grupos_email: List[GrupoEmailOut] = []
+    grupos_pasta: List[GrupoPastaOut] = []
+    data_inclusao: str = ''
+    data_inativado: str = ''
     class Config:
-        orm_mode = True
         from_attributes = True

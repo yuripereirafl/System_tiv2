@@ -11,7 +11,6 @@ export default {
 </script>
 
 <style>
-/* Variáveis globais de cores e fontes */
 :root {
   --cor-primaria: #144179;
   --cor-destaque: #fcca32;

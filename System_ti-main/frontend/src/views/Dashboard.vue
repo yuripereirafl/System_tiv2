@@ -10,6 +10,7 @@
           <button class="menu-item" :class="{active: activePanel==='funcionarios'}" @click="activePanel='funcionarios'">Funcionários</button>
           <button class="menu-item" :class="{active: activePanel==='sistemas'}" @click="activePanel='sistemas'">Sistemas</button>
           <button class="menu-item" :class="{active: activePanel==='setores'}" @click="activePanel='setores'">Setores</button>
+          <button class="menu-item" :class="{active: activePanel==='gruposPasta'}" @click="activePanel='gruposPasta'">Grupo de Pastas</button>
           <button class="menu-item" :class="{active: activePanel==='gruposEmail'}" @click="activePanel='gruposEmail'">Grupo de E-mail</button>
           <button class="menu-item" :class="{active: activePanel==='usuarios'}" @click="activePanel='usuarios'">Usuários</button>
           <button class="menu-item" @click="logout">Sair</button>
@@ -20,8 +21,7 @@
       </div>
     </aside>
     <main class="main-content">
-      <component :is="panelComponent" v-if="activePanel!=='gruposEmail'" />
-      <GruposEmail v-if="activePanel==='gruposEmail'" />
+      <component :is="panelComponent" />
     </main>
   </div>
 </template>
@@ -33,10 +33,11 @@ import DashboardPanel from './DashboardPanel.vue';
 import Setores from './Setores.vue';
 import GruposEmail from './GruposEmail.vue';
 import Usuarios from './Usuarios.vue';
+import GruposPasta from './GruposPasta.vue';
 
 export default {
   name: 'Dashboard',
-  components: { Funcionarios, Sistemas, DashboardPanel, Setores, GruposEmail, Usuarios },
+  components: { Funcionarios, Sistemas, DashboardPanel, Setores, GruposEmail, Usuarios, GruposPasta },
   data() {
     return {
       activePanel: 'dashboard',
@@ -50,6 +51,8 @@ export default {
         case 'dashboard': return 'DashboardPanel';
         case 'setores': return 'Setores';
         case 'usuarios': return 'Usuarios';
+        case 'gruposPasta': return 'GruposPasta';
+        case 'gruposEmail': return 'GruposEmail';
         case 'configuracoes': return { template: '<div><h2 style="color:var(--cor-primaria);font-family:var(--font-titulo);">Configurações</h2><p>Configurações do sistema aparecerão aqui.</p></div>' };
         default: return 'DashboardPanel';
       }
@@ -118,7 +121,6 @@ export default {
     width: 100%;
     box-sizing: border-box;
   }
-  /* Removido estilo específico do botão logout para padronizar com os demais menu-item */
   .user-info {
     background: var(--cor-sec2);
     padding: 12px 0;

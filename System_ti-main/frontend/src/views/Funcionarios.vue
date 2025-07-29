@@ -4,21 +4,38 @@
       <h2>Funcionários</h2>
       <div class="busca-adicionar">
         <input v-model="buscaFuncionario" placeholder="Buscar funcionário..." class="input-busca" />
+        <button class="btn-relatorio" @click="abrirModalRelatorio">📊 Relatórios</button>
         <button class="btn-cadastrar" @click="showForm = !showForm">
           + Adicionar Funcionário
         </button>
       </div>
     </div>
-    <div class="dica-expansao">
+    <!-- Modal de Relatórios -->
+    <div v-if="showModalRelatorio" class="modal-overlay">
+      <div class="form-modal">
+        <h3>Exportar Relatório</h3>
+        <p>Exporte todos os funcionários em XLSX.</p>
+        <div class="modal-actions">
+          <button @click="exportarFuncionariosXLSX">Exportar XLSX</button>
+          <button @click="fecharModalRelatorio">Fechar</button>
+        </div>
+      </div>
     </div>
     <table>
       <thead>
         <tr>
-          <th>Nome</th>
+          <th @click="toggleOrdenacaoNome" style="cursor:pointer">
+            Nome
+            <span v-if="ordenacaoNome === 'asc'">▲</span>
+            <span v-else>▼</span>
+          </th>
           <th>Sobrenome</th>
+          <th>Data de Admissão</th>
+          <th>Data de Desligamento</th>
           <th>Celular</th>
           <th>E-mail</th>
           <th>Grupo E-mail</th>
+          <th>Pastas</th>
           <th>Setor</th>
           <th>Cargo</th>
           <th>Sistemas</th>
@@ -27,35 +44,46 @@
       </thead>
       <tbody>
         <tr v-for="func in funcionariosFiltrados" :key="func.id">
-          <td @click="toggleCelulaExpandida(func.id, 'nome')" 
-              :class="{ expandida: isCelulaExpandida(func.id, 'nome') }"
-              class="clicavel">{{ func.nome }}</td>
-          <td @click="toggleCelulaExpandida(func.id, 'sobrenome')" 
-              :class="{ expandida: isCelulaExpandida(func.id, 'sobrenome') }"
-              class="clicavel">{{ func.sobrenome }}</td>
-          <td @click="toggleCelulaExpandida(func.id, 'celular')" 
-              :class="{ expandida: isCelulaExpandida(func.id, 'celular') }"
-              class="clicavel">{{ func.celular }}</td>
-          <td @click="toggleCelulaExpandida(func.id, 'email')" 
-              :class="{ expandida: isCelulaExpandida(func.id, 'email') }"
-              class="clicavel">{{ func.email }}</td>
-          <td @click="toggleCelulaExpandida(func.id, 'grupos')" 
-              :class="{ expandida: isCelulaExpandida(func.id, 'grupos') }"
-              class="clicavel">
+          <td :class="['clicavel', celulasExpandidas.has('nome-' + func.id) ? 'expandida' : '']" @click="toggleCelula('nome-' + func.id)">
+            {{ func.nome }}
+          </td>
+          <td :class="['clicavel', celulasExpandidas.has('sobrenome-' + func.id) ? 'expandida' : '']" @click="toggleCelula('sobrenome-' + func.id)">
+            {{ func.sobrenome }}
+          </td>
+          <td>
+            {{ func.data_inclusao ? func.data_inclusao.split('-').reverse().join('/') : '—' }}
+          </td>
+          <td>
+            {{ func.data_inativado ? func.data_inativado.split('-').reverse().join('/') : '—' }}
+          </td>
+          <td :class="['clicavel', celulasExpandidas.has('celular-' + func.id) ? 'expandida' : '']" @click="toggleCelula('celular-' + func.id)">
+            {{ func.celular }}
+          </td>
+          <td :class="['clicavel', celulasExpandidas.has('email-' + func.id) ? 'expandida' : '']" @click="toggleCelula('email-' + func.id)">
+            {{ func.email }}
+          </td>
+          <td :class="['clicavel', celulasExpandidas.has('grupos-' + func.id) ? 'expandida' : '']" @click="toggleCelula('grupos-' + func.id)">
             <span v-if="func.grupos_email && func.grupos_email.length">
               {{ func.grupos_email.map(g => g.nome).join(', ') }}
             </span>
             <span v-else>—</span>
           </td>
-          <td @click="toggleCelulaExpandida(func.id, 'setores')" 
-              :class="{ expandida: isCelulaExpandida(func.id, 'setores') }"
-              class="clicavel">{{ func.setores && func.setores.length ? func.setores.map(s => s.nome).join(', ') : '—' }}</td>
-          <td @click="toggleCelulaExpandida(func.id, 'cargo')" 
-              :class="{ expandida: isCelulaExpandida(func.id, 'cargo') }"
-              class="clicavel">{{ func.cargo || '—' }}</td>
-          <td @click="toggleCelulaExpandida(func.id, 'sistemas')" 
-              :class="{ expandida: isCelulaExpandida(func.id, 'sistemas') }"
-              class="clicavel sistemas-celula">
+          <td :class="['clicavel', celulasExpandidas.has('grupos-pasta-' + func.id) ? 'expandida' : '']" @click="toggleCelula('grupos-pasta-' + func.id)">
+            <span v-if="func.grupos_pasta && func.grupos_pasta.length">
+              {{ func.grupos_pasta.map(g => g.nome).join(', ') }}
+            </span>
+            <span v-else>—</span>
+          </td>
+          <td :class="['clicavel', celulasExpandidas.has('setores-' + func.id) ? 'expandida' : '']" @click="toggleCelula('setores-' + func.id)">
+            <span v-if="func.setores && func.setores.length">
+              {{ func.setores.map(s => s.nome).join(', ') }}
+            </span>
+            <span v-else>—</span>
+          </td>
+          <td :class="['clicavel', celulasExpandidas.has('cargo-' + func.id) ? 'expandida' : '']" @click="toggleCelula('cargo-' + func.id)">
+            {{ func.cargo || '—' }}
+          </td>
+          <td :class="['clicavel', celulasExpandidas.has('sistemas-' + func.id) ? 'expandida' : '']" @click="toggleCelula('sistemas-' + func.id)">
             <span v-if="func.sistemas && func.sistemas.length">
               {{ func.sistemas.map(s => `${s.nome} (${s.status})`).join(', ') }}
             </span>
@@ -77,6 +105,15 @@
               <input v-model="form.nome" placeholder="Nome" required />
               <input v-model="form.sobrenome" placeholder="Sobrenome" required />
               <input v-model="form.cargo" placeholder="Cargo" required />
+              <div v-if="!editando">
+                <label>Data de Inclusão</label>
+                <input type="date" v-model="form.data_inclusao" required />
+              </div>
+              <div v-if="editando">
+                <label>Data de Inativação</label>
+                <input type="date" v-model="form.data_inativado" />
+                <button type="button" @click="inativarFuncionario" style="margin-top:6px;margin-left:4px;">Inativar hoje</button>
+              </div>
             </div>
             <div class="modal-col">
               <input v-model="form.celular" placeholder="Celular" required />
@@ -86,14 +123,12 @@
           <hr class="modal-divider" />
           <div class="modal-row">
             <div class="modal-col">
-              <!-- Grupos de E-mail com Select Múltiplo -->
               <div class="select-group">
                 <label>Grupos de E-mail:</label>
                 <div class="multi-select-container">
                   <div class="selected-items">
-                    <span v-for="id in form.grupos_email_ids" :key="id" class="selected-chip">
+                    <span v-for="id in form.grupos_email_ids" :key="id" class="selected-chip" @click="removeGrupo(id)">
                       {{ getGrupoNome(id) }}
-                      <button type="button" @click="removeGrupo(id)" class="remove-chip">×</button>
                     </span>
                   </div>
                   <select v-model="novoGrupoId" @change="addGrupo" class="multi-select">
@@ -104,34 +139,31 @@
                   </select>
                 </div>
               </div>
-              <!-- Setores com Select Múltiplo -->
+
               <div class="select-group">
-                <label>Setores:</label>
+                <label>Grupos de Pastas:</label>
                 <div class="multi-select-container">
                   <div class="selected-items">
-                    <span v-for="id in form.setores_ids" :key="id" class="selected-chip">
-                      {{ getSetorNome(id) }}
-                      <button type="button" @click="removeSetor(id)" class="remove-chip">×</button>
+                    <span v-for="id in form.grupos_pasta_ids" :key="id" class="selected-chip" @click="removeGrupoPasta(id)">
+                      {{ getGrupoPastaNome(id) }}
                     </span>
                   </div>
-                  <select v-model="novoSetorId" @change="addSetor" class="multi-select">
-                    <option value="">+ Adicionar setor...</option>
-                    <option v-for="setor in setoresDisponiveis" :key="setor.id" :value="setor.id">
-                      {{ setor.nome }}
+                  <select v-model="novoGrupoPastaId" @change="addGrupoPasta" class="multi-select">
+                    <option value="">+ Adicionar grupo de pastas...</option>
+                    <option v-for="grupo in gruposPastaDisponiveis" :key="grupo.id" :value="grupo.id">
+                      {{ grupo.nome }}
                     </option>
                   </select>
                 </div>
               </div>
             </div>
             <div class="modal-col">
-              <!-- Sistemas com Select Múltiplo -->
               <div class="select-group">
                 <label>Sistemas:</label>
                 <div class="multi-select-container">
                   <div class="selected-items">
-                    <span v-for="id in form.sistemas_ids" :key="id" class="selected-chip">
+                    <span v-for="id in form.sistemas_ids" :key="id" class="selected-chip" @click="removeSistema(id)">
                       {{ getSistemaNome(id) }}
-                      <button type="button" @click="removeSistema(id)" class="remove-chip">×</button>
                     </span>
                   </div>
                   <select v-model="novoSistemaId" @change="addSistema" class="multi-select">
@@ -177,36 +209,72 @@ export default {
         setores_ids: [],
         sistemas_ids: [],
         grupos_email_ids: [],
+        grupos_pasta_ids: [],
+        data_inclusao: '',
+        data_inativado: ''
       },
       gruposEmail: [],
+      gruposPasta: [],
       buscaFuncionario: '',
-      celulasExpandidas: new Set(), // Para controlar células expandidas
+      celulasExpandidas: new Set(), 
       novoGrupoId: '',
       novoSetorId: '',
       novoSistemaId: '',
+      novoGrupoPastaId: '',
+      ordenacaoNome: 'asc',
+      showModalRelatorio: false,
     }
   },
   computed: {
     funcionariosFiltrados() {
-      if (!this.buscaFuncionario) return this.funcionarios;
-      const busca = this.buscaFuncionario.toLowerCase();
-      return this.funcionarios.filter(f => {
-        const nome = (f.nome || '').toLowerCase();
-        const sobrenome = (f.sobrenome || '').toLowerCase();
-        const email = (f.email || '').toLowerCase();
-        const cargo = (f.cargo || '').toLowerCase();
-        const celular = (f.celular || '').toLowerCase();
-        return (
-          nome.includes(busca) ||
-          sobrenome.includes(busca) ||
-          email.includes(busca) ||
-          cargo.includes(busca) ||
-          celular.includes(busca)
-        );
+      let lista = this.funcionarios;
+      if (this.buscaFuncionario) {
+        const busca = this.buscaFuncionario.toLowerCase();
+        lista = lista.filter(f => {
+          const nome = (f.nome || '').toLowerCase();
+          const sobrenome = (f.sobrenome || '').toLowerCase();
+          const email = (f.email || '').toLowerCase();
+          const cargo = (f.cargo || '').toLowerCase();
+          const celular = (f.celular || '').toLowerCase();
+          // Busca por sistemas
+          const sistemas = (f.sistemas && f.sistemas.length)
+            ? f.sistemas.map(s => (s.nome || '').toLowerCase()).join(', ')
+            : '';
+          // Busca por setores
+          const setores = (f.setores && f.setores.length)
+            ? f.setores.map(s => (s.nome || '').toLowerCase()).join(', ')
+            : '';
+          // Busca por grupos de pastas
+          const gruposPasta = (f.grupos_pasta && f.grupos_pasta.length)
+            ? f.grupos_pasta.map(g => (g.nome || '').toLowerCase()).join(', ')
+            : '';
+          return (
+            nome.includes(busca) ||
+            sobrenome.includes(busca) ||
+            email.includes(busca) ||
+            cargo.includes(busca) ||
+            celular.includes(busca) ||
+            sistemas.includes(busca) ||
+            setores.includes(busca) ||
+            gruposPasta.includes(busca)
+          );
+        });
+      }
+      // Ordena por nome, asc ou desc
+      return lista.slice().sort((a, b) => {
+        const nomeA = (a.nome || '').toLowerCase();
+        const nomeB = (b.nome || '').toLowerCase();
+        if (nomeA < nomeB) return this.ordenacaoNome === 'asc' ? -1 : 1;
+        if (nomeA > nomeB) return this.ordenacaoNome === 'asc' ? 1 : -1;
+        return 0;
       });
     },
     gruposEmailDisponiveis() {
       return this.gruposEmail.filter(grupo => !this.form.grupos_email_ids.includes(grupo.id));
+    },
+    gruposPastaDisponiveis() {
+      const gruposPastaIds = Array.isArray(this.form.grupos_pasta_ids) ? this.form.grupos_pasta_ids : [];
+      return this.gruposPasta.filter(grupo => !gruposPastaIds.includes(grupo.id));
     },
     setoresDisponiveis() {
       return this.setores.filter(setor => !this.form.setores_ids.includes(setor.id));
@@ -215,131 +283,50 @@ export default {
       return this.sistemas.filter(sistema => !this.form.sistemas_ids.includes(sistema.id));
     }
   },
-  async mounted() {
-    await this.carregarGruposEmail();
-    await this.carregarFuncionarios();
-    await this.carregarSetores();
-    await this.carregarSistemas();
-  },
   methods: {
-    async carregarGruposEmail() {
-      const res = await axios.get(`${API_BASE_URL}/grupos-email/`);
-      this.gruposEmail = res.data;
+    abrirModalRelatorio() {
+      this.showModalRelatorio = true;
     },
-    async carregarFuncionarios() {
-      const res = await axios.get(`${API_BASE_URL}/funcionarios/`);
-      this.funcionarios = res.data;
+    fecharModalRelatorio() {
+      this.showModalRelatorio = false;
     },
-    async carregarSetores() {
-      const res = await axios.get(`${API_BASE_URL}/setores/`);
-      this.setores = res.data;
+    async exportarFuncionariosXLSX() {
+      // Chama endpoint backend para exportar XLSX
+      try {
+        const response = await axios({
+          url: `${API_BASE_URL}/relatorios/funcionarios/xlsx`,
+          method: 'GET',
+          responseType: 'blob',
+        });
+        // Cria link para download
+        const url = window.URL.createObjectURL(new Blob([response.data]));
+        const link = document.createElement('a');
+        link.href = url;
+        link.setAttribute('download', 'funcionarios.xlsx');
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        this.fecharModalRelatorio();
+      } catch (err) {
+        alert('Erro ao exportar relatório.');
+      }
     },
-    async carregarSistemas() {
-      const res = await axios.get(`${API_BASE_URL}/sistemas/`);
-      this.sistemas = res.data;
+    async carregarGruposPasta() {
+      const res = await axios.get(`${API_BASE_URL}/grupos-pasta/`);
+      this.gruposPasta = res.data;
     },
-    abrirEditar(func) {
-      this.form = {
-        nome: func.nome,
-        sobrenome: func.sobrenome,
-        cargo: func.cargo,
-        celular: func.celular,
-        email: func.email,
-        grupo_email: func.grupo_email || '',
-        setores_ids: func.setores ? func.setores.map(s => s.id) : [],
-        sistemas_ids: func.sistemas ? func.sistemas.map(s => s.id) : [],
-        grupos_email_ids: func.grupos_email ? func.grupos_email.map(g => g.id) : [],
-      };
-      this.funcionarioEditId = func.id;
-      this.editando = true;
-      this.showForm = true;
-      // Buscar sistemas vinculados ao funcionário
-      axios.get(`${API_BASE_URL}/funcionarios/${func.id}/sistemas`).then(res => {
-        this.form.sistemas_ids = res.data.map(s => s.id);
-      });
+    inativarFuncionario() {
+      // Preenche com a data atual no formato yyyy-mm-dd
+      this.form.data_inativado = new Date().toISOString().slice(0, 10);
     },
-    async salvarEdicaoFuncionario() {
-      // Envia todos os campos, inclusive se algum array estiver vazio
-      await axios.put(`${API_BASE_URL}/funcionarios/${this.funcionarioEditId}`, {
-        nome: this.form.nome,
-        sobrenome: this.form.sobrenome,
-        cargo: this.form.cargo,
-        celular: this.form.celular,
-        email: this.form.email || '',
-        grupos_email_ids: [...this.form.grupos_email_ids],
-        setores_ids: [...this.form.setores_ids],
-        sistemas_ids: [...this.form.sistemas_ids]
-      });
-      // Aguarda atualização dos dados antes de fechar o modal
-      await this.carregarFuncionarios();
-      this.fecharModal();
-    },
-    async excluirFuncionario(id) {
-      await axios.delete(`${API_BASE_URL}/funcionarios/${id}`);
-      await this.carregarFuncionarios();
-    },
-    fecharModal() {
-      this.showForm = false;
-      this.editando = false;
-      this.funcionarioEditId = null;
-      this.form = { nome: '', sobrenome: '', cargo: '', celular: '', email: '', grupo_email: '', setores_ids: [], sistemas_ids: [], grupos_email_ids: [] };
-      this.novoGrupoId = '';
-      this.novoSetorId = '';
-      this.novoSistemaId = '';
-    },
-    async cadastrarFuncionario() {
-      await axios.post(`${API_BASE_URL}/funcionarios/`, {
-        nome: this.form.nome,
-        sobrenome: this.form.sobrenome,
-        cargo: this.form.cargo,
-        celular: this.form.celular,
-        email: this.form.email,
-        grupos_email_ids: this.form.grupos_email_ids,
-        setores_ids: this.form.setores_ids,
-        sistemas_ids: this.form.sistemas_ids
-      });
-      await this.carregarFuncionarios();
-      this.fecharModal();
-    },
-    async cadastrarGrupoEmail() {
-      await axios.post(`${API_BASE_URL}/grupos-email/`, { nome: this.formGrupo.nome });
-      this.formGrupo.nome = '';
-      await this.carregarGruposEmail();
-    },
-    abrirEditarGrupo(grupo) {
-      this.formGrupo.nome = grupo.nome;
-      this.grupoEditId = grupo.id;
-      this.editandoGrupo = true;
-    },
-    async salvarEdicaoGrupo() {
-      await axios.put(`${API_BASE_URL}/grupos-email/${this.grupoEditId}`, { nome: this.formGrupo.nome });
-      this.formGrupo.nome = '';
-      this.editandoGrupo = false;
-      this.grupoEditId = null;
-      await this.carregarGruposEmail();
-    },
-    async excluirGrupoEmail(id) {
-      await axios.delete(`${API_BASE_URL}/grupos-email/${id}`);
-      await this.carregarGruposEmail();
-    },
-    fecharModalGrupo() {
-      this.showGruposEmail = false;
-      this.formGrupo.nome = '';
-      this.editandoGrupo = false;
-      this.grupoEditId = null;
-    },
-    toggleCelulaExpandida(funcionarioId, coluna) {
-      const key = `${funcionarioId}-${coluna}`;
+    toggleCelula(key) {
       if (this.celulasExpandidas.has(key)) {
         this.celulasExpandidas.delete(key);
       } else {
         this.celulasExpandidas.add(key);
       }
-      // Força a reatividade do Set
+      // Forçar atualização do Vue (Set não é reativo)
       this.celulasExpandidas = new Set(this.celulasExpandidas);
-    },
-    isCelulaExpandida(funcionarioId, coluna) {
-      return this.celulasExpandidas.has(`${funcionarioId}-${coluna}`);
     },
     // Métodos para Select Múltiplo - Grupos
     addGrupo() {
@@ -382,17 +369,196 @@ export default {
     getSistemaNome(id) {
       const sistema = this.sistemas.find(s => s.id === id);
       return sistema ? sistema.nome : 'Sistema não encontrado';
-    }
+    },
+    // Métodos para Select Múltiplo - Grupos de Pastas
+    addGrupoPasta() {
+      if (this.novoGrupoPastaId && !this.form.grupos_pasta_ids.includes(parseInt(this.novoGrupoPastaId))) {
+        this.form.grupos_pasta_ids.push(parseInt(this.novoGrupoPastaId));
+        this.novoGrupoPastaId = '';
+      }
+    },
+    removeGrupoPasta(id) {
+      this.form.grupos_pasta_ids = this.form.grupos_pasta_ids.filter(gId => gId !== id);
+    },
+    getGrupoPastaNome(id) {
+      const grupo = this.gruposPasta.find(g => g.id === id);
+      return grupo ? grupo.nome : 'Grupo não encontrado';
+    },
+    async cadastrarFuncionario() {
+      // Garante que data_inclusao seja string no formato 'YYYY-MM-DD' ou vazio
+      let dataInclusaoFormatada = '';
+      if (this.form.data_inclusao) {
+        if (typeof this.form.data_inclusao === 'string') {
+          dataInclusaoFormatada = this.form.data_inclusao;
+        } else if (this.form.data_inclusao instanceof Date) {
+          const year = this.form.data_inclusao.getFullYear();
+          const month = String(this.form.data_inclusao.getMonth() + 1).padStart(2, '0');
+          const day = String(this.form.data_inclusao.getDate()).padStart(2, '0');
+          dataInclusaoFormatada = `${year}-${month}-${day}`;
+        }
+      }
+      await axios.post(`${API_BASE_URL}/funcionarios/`, {
+        nome: this.form.nome,
+        sobrenome: this.form.sobrenome,
+        cargo: this.form.cargo,
+        celular: this.form.celular,
+        email: this.form.email || '',
+        grupos_email_ids: [...this.form.grupos_email_ids],
+        setores_ids: [...this.form.setores_ids],
+        sistemas_ids: [...this.form.sistemas_ids],
+        grupos_pasta_ids: [...this.form.grupos_pasta_ids],
+        data_inclusao: dataInclusaoFormatada,
+        data_inativado: ''
+      });
+      await this.carregarFuncionarios();
+      this.fecharModal();
+    },
+    fecharModal() {
+      this.showForm = false;
+      this.editando = false;
+      this.funcionarioEditId = null;
+      this.form = {
+        nome: '',
+        sobrenome: '',
+        cargo: '',
+        celular: '',
+        email: '',
+        grupo_email: '',
+        setores_ids: [],
+        sistemas_ids: [],
+        grupos_email_ids: [],
+        grupos_pasta_ids: [],
+        data_inclusao: '',
+        data_inativado: ''
+      };
+      this.novoGrupoId = '';
+      this.novoSetorId = '';
+      this.novoSistemaId = '';
+      this.novoGrupoPastaId = '';
+    },
+    async carregarGruposEmail() {
+      const res = await axios.get(`${API_BASE_URL}/grupos-email/`);
+      this.gruposEmail = res.data;
+    },
+    async carregarFuncionarios() {
+      const res = await axios.get(`${API_BASE_URL}/funcionarios/`);
+      this.funcionarios = res.data;
+    },
+    toggleOrdenacaoNome() {
+      this.ordenacaoNome = this.ordenacaoNome === 'asc' ? 'desc' : 'asc';
+    },
+    async carregarSetores() {
+      const res = await axios.get(`${API_BASE_URL}/setores/`);
+      this.setores = res.data;
+    },
+    async carregarSistemas() {
+      const res = await axios.get(`${API_BASE_URL}/sistemas/`);
+      this.sistemas = res.data;
+    },
+    abrirEditar(func) {
+      // Garante formato yyyy-mm-dd para o input de data
+      let dataInativado = '';
+      if (func.data_inativado) {
+        // Se vier no formato ISO, pega só a data
+        if (func.data_inativado.length >= 10) {
+          dataInativado = func.data_inativado.slice(0, 10);
+        }
+      }
+      this.form = {
+        nome: func.nome,
+        sobrenome: func.sobrenome,
+        cargo: func.cargo,
+        celular: func.celular,
+        email: func.email,
+        grupo_email: (func.grupo_email || ''),
+        setores_ids: func.setores ? func.setores.map(s => s.id) : [],
+        sistemas_ids: func.sistemas ? func.sistemas.map(s => s.id) : [],
+        grupos_email_ids: func.grupos_email ? func.grupos_email.map(g => g.id) : [],
+        grupos_pasta_ids: func.grupos_pasta ? func.grupos_pasta.map(g => g.id) : [],
+        data_inclusao: func.data_inclusao || '',
+        data_inativado: dataInativado || ''
+      };
+      this.funcionarioEditId = func.id;
+      this.editando = true;
+      this.showForm = true;
+      // Buscar sistemas vinculados ao funcionário
+      axios.get(`${API_BASE_URL}/funcionarios/${func.id}/sistemas`).then(res => {
+        this.form.sistemas_ids = res.data.map(s => s.id);
+      });
+    },
+    async salvarEdicaoFuncionario() {
+      // Garante que data_inativado seja string no formato 'YYYY-MM-DD' ou vazio
+      let dataInativadoFormatada = '';
+      if (this.form.data_inativado) {
+        if (typeof this.form.data_inativado === 'string') {
+          dataInativadoFormatada = this.form.data_inativado;
+        } else if (this.form.data_inativado instanceof Date) {
+          // Formata para YYYY-MM-DD
+          const year = this.form.data_inativado.getFullYear();
+          const month = String(this.form.data_inativado.getMonth() + 1).padStart(2, '0');
+          const day = String(this.form.data_inativado.getDate()).padStart(2, '0');
+          dataInativadoFormatada = `${year}-${month}-${day}`;
+        }
+      }
+      await axios.put(`${API_BASE_URL}/funcionarios/${this.funcionarioEditId}`, {
+        nome: this.form.nome,
+        sobrenome: this.form.sobrenome,
+        cargo: this.form.cargo,
+        celular: this.form.celular,
+        email: this.form.email || '',
+        grupos_email_ids: [...this.form.grupos_email_ids],
+        setores_ids: [...this.form.setores_ids],
+        sistemas_ids: [...this.form.sistemas_ids],
+        grupos_pasta_ids: [...this.form.grupos_pasta_ids],
+        data_inclusao: this.form.data_inclusao || '',
+        data_inativado: dataInativadoFormatada
+      });
+      await this.carregarFuncionarios();
+      this.fecharModal();
+    },
+    async excluirFuncionario(id) {
+      if (confirm('Tem certeza que deseja excluir este funcionário?')) {
+        try {
+          await axios.delete(`${API_BASE_URL}/funcionarios/${id}`);
+          await this.carregarFuncionarios();
+        } catch (error) {
+          alert('Erro ao excluir funcionário. Verifique se o funcionário existe ou se há dependências.');
+        }
+      }
+    },
+  },
+  mounted() {
+    this.carregarFuncionarios();
+    this.carregarSetores();
+    this.carregarSistemas();
+    this.carregarGruposEmail();
+    this.carregarGruposPasta();
   }
 }
 </script>
 
+
 <style scoped>
+.btn-relatorio {
+  background: #1976d2;
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  padding: 10px 18px;
+  font-size: 15px;
+  font-family: var(--font-titulo);
+  cursor: pointer;
+  margin-right: 8px;
+  transition: background 0.2s;
+}
+.btn-relatorio:hover {
+  background: #1565c0;
+}
 .tabela-funcionarios {
   background: var(--cor-branco);
   border-radius: 12px;
   padding: 24px 20px;
-  margin: 20px 0 0 -8px;
+  margin: 20px 0 0 0;
   box-shadow: 0 2px 8px rgba(20,65,121,0.08);
   overflow-x: auto;
 }
@@ -569,7 +735,6 @@ tbody tr:last-child td {
   cursor: pointer;
   font-size: 14px;
 }
-/* Modal overlay */
 .modal-overlay {
   position: fixed;
   top: 0;
@@ -664,40 +829,51 @@ tbody tr:last-child td {
   gap: 6px;
   margin-bottom: 8px;
   min-height: 32px;
+  max-height: 80px;
+  overflow-y: auto;
+  padding-right: 8px;
 }
 
 .selected-chip {
   background: var(--cor-destaque);
   color: var(--cor-primaria);
-  padding: 4px 8px;
+  padding: 4px 28px 4px 8px; /* padding extra à direita para o x */
   border-radius: 16px;
   font-size: 13px;
-  display: flex;
+  display: inline-flex;
   align-items: center;
   gap: 6px;
   font-family: var(--font-corpo);
-}
-
-.remove-chip {
-  background: none;
-  border: none;
-  color: var(--cor-primaria);
-  font-size: 16px;
+  max-width: 220px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  position: relative;
+  word-break: break-all;
   cursor: pointer;
-  padding: 0;
-  width: 18px;
-  height: 18px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: background 0.2s;
 }
 
-.remove-chip:hover {
-  background: rgba(20,65,121,0.1);
-}
 
+
+/* Tooltip para chips grandes */
+.selected-chip:hover::after {
+  content: attr(title);
+  position: absolute;
+  left: 0;
+  top: 100%;
+  background: #fffbe6;
+  color: #333;
+  border: 1px solid #e0c97f;
+  border-radius: 6px;
+  padding: 4px 8px;
+  font-size: 12px;
+  white-space: normal;
+  box-shadow: 0 2px 8px rgba(20,65,121,0.08);
+  z-index: 10;
+  min-width: 120px;
+  max-width: 350px;
+  pointer-events: none;
+}
 .multi-select {
   width: 100%;
   padding: 6px 8px;
@@ -765,12 +941,28 @@ tbody tr:last-child td {
   }
   
   .selected-items {
-    min-height: 24px;
+    background: var(--cor-destaque);
+    color: var(--cor-primaria);
+    padding: 4px 8px;
+    border-radius: 16px;
+    font-size: 13px;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-family: var(--font-corpo);
+    max-width: 220px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    position: relative;
+    word-break: break-all;
+    cursor: pointer;
+    transition: background 0.2s;
   }
-  
-  .selected-chip {
-    font-size: 12px;
-    padding: 3px 6px;
+  .selected-chip:hover {
+    background: #ffe082;
   }
 }
+
 </style>
+

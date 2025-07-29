@@ -14,7 +14,11 @@
     <table class="tabela-setores">
       <thead>
         <tr>
-          <th>Nome do Setor</th>
+          <th @click="toggleOrdenacaoNome" style="cursor:pointer">
+            Nome do Setor
+            <span v-if="ordenacaoNome === 'asc'">▲</span>
+            <span v-else>▼</span>
+          </th>
           <th>Descrição</th>
           <th>Ações</th>
         </tr>
@@ -64,16 +68,27 @@ export default {
       editando: false,
       setorEditId: null,
       buscaSetor: ''
+      ,ordenacaoNome: 'asc'
     }
   },
   computed: {
     setoresFiltrados() {
-      if (!this.buscaSetor) return this.setores;
-      const busca = this.buscaSetor.toLowerCase();
-      return this.setores.filter(s => {
-        const nome = (s.nome || '').toLowerCase();
-        const descricao = (s.descricao || '').toLowerCase();
-        return nome.includes(busca) || descricao.includes(busca);
+      let lista = this.setores;
+      if (this.buscaSetor) {
+        const busca = this.buscaSetor.toLowerCase();
+        lista = lista.filter(s => {
+          const nome = (s.nome || '').toLowerCase();
+          const descricao = (s.descricao || '').toLowerCase();
+          return nome.includes(busca) || descricao.includes(busca);
+        });
+      }
+      // Ordena por nome asc/desc
+      return lista.slice().sort((a, b) => {
+        const nomeA = (a.nome || '').toLowerCase();
+        const nomeB = (b.nome || '').toLowerCase();
+        if (nomeA < nomeB) return this.ordenacaoNome === 'asc' ? -1 : 1;
+        if (nomeA > nomeB) return this.ordenacaoNome === 'asc' ? 1 : -1;
+        return 0;
       });
     }
   },
@@ -81,6 +96,9 @@ export default {
     await this.carregarSetores();
   },
   methods: {
+    toggleOrdenacaoNome() {
+      this.ordenacaoNome = this.ordenacaoNome === 'asc' ? 'desc' : 'asc';
+    },
     async carregarSetores() {
       const response = await fetch(`${API_BASE_URL}/setores/`);
       this.setores = await response.json();

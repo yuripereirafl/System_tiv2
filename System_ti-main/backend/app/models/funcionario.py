@@ -26,6 +26,9 @@ funcionario_grupo_email = Table(
     Column('grupo_email_id', Integer, ForeignKey('grupos_email.id'))
 )
 
+
+from app.models.grupo_pasta import funcionario_grupo_pasta
+
 class Funcionario(Base):
     __tablename__ = 'funcionarios'
     id = Column(Integer, primary_key=True, index=True)
@@ -34,6 +37,9 @@ class Funcionario(Base):
     cargo = Column(String, nullable=True)
     celular = Column(String, nullable=False)
     email = Column(String, nullable=False)
+    data_inclusao = Column(String, nullable=True)
+    data_inativado = Column(String, nullable=True)
     setores = relationship("Setor", secondary=funcionario_setor, backref="funcionarios")
     sistemas = relationship("Sistema", secondary=funcionario_sistema, backref="funcionarios")
     grupos_email = relationship("GrupoEmail", secondary=funcionario_grupo_email, backref="funcionarios")
+    grupos_pasta = relationship("GrupoPasta", secondary=funcionario_grupo_pasta, back_populates="funcionarios")

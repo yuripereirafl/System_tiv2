@@ -12,7 +12,11 @@
     <table>
       <thead>
         <tr>
-          <th>Nome do Grupo</th>
+          <th @click="toggleOrdenacaoNome" style="cursor:pointer">
+            Nome do Grupo
+            <span v-if="ordenacaoNome === 'asc'">▲</span>
+            <span v-else>▼</span>
+          </th>
           <th>Ações</th>
         </tr>
       </thead>
@@ -55,15 +59,26 @@ export default {
         nome: ''
       },
       buscaGrupo: ''
+      ,ordenacaoNome: 'asc'
     }
   },
   computed: {
     gruposFiltrados() {
-      if (!this.buscaGrupo) return this.grupos;
-      const busca = this.buscaGrupo.toLowerCase();
-      return this.grupos.filter(g => {
-        const nome = (g.nome || '').toLowerCase();
-        return nome.includes(busca);
+      let lista = this.grupos;
+      if (this.buscaGrupo) {
+        const busca = this.buscaGrupo.toLowerCase();
+        lista = lista.filter(g => {
+          const nome = (g.nome || '').toLowerCase();
+          return nome.includes(busca);
+        });
+      }
+      // Ordena por nome asc/desc
+      return lista.slice().sort((a, b) => {
+        const nomeA = (a.nome || '').toLowerCase();
+        const nomeB = (b.nome || '').toLowerCase();
+        if (nomeA < nomeB) return this.ordenacaoNome === 'asc' ? -1 : 1;
+        if (nomeA > nomeB) return this.ordenacaoNome === 'asc' ? 1 : -1;
+        return 0;
       });
     }
   },
@@ -71,6 +86,9 @@ export default {
     await this.carregarGrupos();
   },
   methods: {
+    toggleOrdenacaoNome() {
+      this.ordenacaoNome = this.ordenacaoNome === 'asc' ? 'desc' : 'asc';
+    },
     async carregarGrupos() {
       const res = await axios.get(`${API_BASE_URL}/grupos-email/`);
       this.grupos = res.data;
@@ -98,6 +116,8 @@ export default {
     async excluirGrupo(id) {
       await axios.delete(`${API_BASE_URL}/grupos-email/${id}`);
       await this.carregarGrupos();
+      // Dispara evento global para atualizar dashboard
+      window.dispatchEvent(new Event('atualizarDashboard'));
     },
     fecharModal() {
       this.showForm = false;

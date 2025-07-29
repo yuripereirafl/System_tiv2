@@ -16,6 +16,7 @@ import CadastroUsuario from '../views/CadastroUsuario.vue';
 import Cadastro from '../views/Cadastro.vue';
 import Funcionarios from '../views/Funcionarios.vue';
 import Sistemas from '../views/Sistemas.vue';
+import GruposPasta from '../views/GruposPasta.vue';
 import Login from '../views/Login.vue';
 
 const Configuracoes = { template: '<div><h2 style="color:var(--cor-primaria);font-family:var(--font-titulo);">Configurações</h2><p>Configurações do sistema aparecerão aqui.</p></div>' };
@@ -27,6 +28,8 @@ const routes = [
   { path: '/cadastro', component: Cadastro },
   { path: '/sistemas', component: Sistemas },
   { path: '/funcionarios', component: Funcionarios },
+  { path: '/grupos-pasta', component: GruposPasta },
+  { path: '/grupos-email', component: require('../views/GruposEmail.vue').default },
   { path: '/configuracoes', component: Configuracoes },
   { path: '/usuarios', component: require('../views/Usuarios.vue').default }
 ];
@@ -38,12 +41,10 @@ const router = createRouter({
 
 router.beforeEach((to, from, next) => {
   const token = localStorage.getItem('token');
-  // Permite acesso livre apenas à página de login
   if (to.path === '/login') {
     next();
     return;
   }
-  // Bloqueia todas as outras rotas (inclusive cadastro-usuario) se não estiver logado
   if (!token) {
     next('/login');
   } else {

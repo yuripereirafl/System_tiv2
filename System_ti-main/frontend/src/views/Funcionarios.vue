@@ -270,17 +270,23 @@ export default {
       });
     },
     gruposEmailDisponiveis() {
-      return this.gruposEmail.filter(grupo => !this.form.grupos_email_ids.includes(grupo.id));
+      return this.gruposEmail
+        .filter(grupo => !this.form.grupos_email_ids.includes(grupo.id))
+        .slice().sort((a, b) => a.nome.localeCompare(b.nome, 'pt-BR'));
     },
     gruposPastaDisponiveis() {
       const gruposPastaIds = Array.isArray(this.form.grupos_pasta_ids) ? this.form.grupos_pasta_ids : [];
-      return this.gruposPasta.filter(grupo => !gruposPastaIds.includes(grupo.id));
+      return this.gruposPasta
+        .filter(grupo => !gruposPastaIds.includes(grupo.id))
+        .slice().sort((a, b) => a.nome.localeCompare(b.nome, 'pt-BR'));
     },
     setoresDisponiveis() {
       return this.setores.filter(setor => !this.form.setores_ids.includes(setor.id));
     },
     sistemasDisponiveis() {
-      return this.sistemas.filter(sistema => !this.form.sistemas_ids.includes(sistema.id));
+      return this.sistemas
+        .filter(sistema => !this.form.sistemas_ids.includes(sistema.id))
+        .slice().sort((a, b) => a.nome.localeCompare(b.nome, 'pt-BR'));
     }
   },
   methods: {

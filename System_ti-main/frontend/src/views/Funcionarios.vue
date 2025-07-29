@@ -106,11 +106,11 @@
               <input v-model="form.sobrenome" placeholder="Sobrenome" required />
               <input v-model="form.cargo" placeholder="Cargo" required />
               <div v-if="!editando">
-                <label>Data de Inclusão</label>
+                <label>Data de Admissão</label>
                 <input type="date" v-model="form.data_inclusao" required />
               </div>
               <div v-if="editando">
-                <label>Data de Inativação</label>
+                <label>Data de Desligamento	</label>
                 <input type="date" v-model="form.data_inativado" />
                 <button type="button" @click="inativarFuncionario" style="margin-top:6px;margin-left:4px;">Inativar hoje</button>
               </div>
@@ -121,7 +121,7 @@
             </div>
           </div>
           <hr class="modal-divider" />
-          <div class="modal-row">
+          <div class="modal-row selects-2x2">
             <div class="modal-col">
               <div class="select-group">
                 <label>Grupos de E-mail:</label>
@@ -139,7 +139,8 @@
                   </select>
                 </div>
               </div>
-
+            </div>
+            <div class="modal-col">
               <div class="select-group">
                 <label>Grupos de Pastas:</label>
                 <div class="multi-select-container">
@@ -152,6 +153,26 @@
                     <option value="">+ Adicionar grupo de pastas...</option>
                     <option v-for="grupo in gruposPastaDisponiveis" :key="grupo.id" :value="grupo.id">
                       {{ grupo.nome }}
+                    </option>
+                  </select>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="modal-row selects-2x2">
+            <div class="modal-col">
+              <div class="select-group">
+                <label>Setores:</label>
+                <div class="multi-select-container">
+                  <div class="selected-items">
+                    <span v-for="id in form.setores_ids" :key="id" class="selected-chip" @click="removeSetor(id)">
+                      {{ getSetorNome(id) }}
+                    </span>
+                  </div>
+                  <select v-model="novoSetorId" @change="addSetor" class="multi-select">
+                    <option value="">+ Adicionar setor...</option>
+                    <option v-for="setor in setoresDisponiveis" :key="setor.id" :value="setor.id">
+                      {{ setor.nome }}
                     </option>
                   </select>
                 </div>
@@ -899,7 +920,24 @@ tbody tr:last-child td {
   padding: 8px;
 }
 
-/* Modal responsivo melhorado */
+.selects-2x2 {
+  display: flex;
+  gap: 24px;
+  margin-bottom: 0;
+}
+.selects-2x2 .modal-col {
+  min-width: 180px;
+  flex: 1 1 0;
+}
+@media (max-width: 768px) {
+  .selects-2x2 {
+    flex-direction: column;
+    gap: 10px;
+  }
+  .selects-2x2 .modal-col {
+    min-width: 100%;
+  }
+}
 .form-modal {
   background: var(--cor-branco);
   border: 1px solid var(--cor-sec1);

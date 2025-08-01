@@ -35,7 +35,7 @@ class Funcionario(Base):
     nome = Column(String, nullable=False)
     sobrenome = Column(String, nullable=False)
     cargo = Column(String, nullable=True)
-    celular = Column(String, nullable=False)
+    celular = Column(String, nullable=True)
     email = Column(String, nullable=False)
     data_inclusao = Column(String, nullable=True)
     data_inativado = Column(String, nullable=True)

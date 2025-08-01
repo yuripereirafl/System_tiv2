@@ -116,7 +116,7 @@
               </div>
             </div>
             <div class="modal-col">
-              <input v-model="form.celular" placeholder="Celular" required />
+              <input v-model="form.celular" placeholder="Celular" />
               <input v-model="form.email" placeholder="E-mail" required type="email" />
             </div>
           </div>

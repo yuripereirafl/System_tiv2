@@ -1,5 +1,5 @@
 
-from typing import List
+from typing import List, Optional
 from pydantic import BaseModel
 from app.schemas.sistema import Sistema
 from app.schemas.setor import SetorOut
@@ -13,7 +13,7 @@ class FuncionarioBase(BaseModel):
     sistemas_ids: List[int] = []
     grupos_email_ids: List[int] = []
     grupos_pasta_ids: List[int] = []
-    celular: str
+    celular: Optional[str] = None
     cargo: str = ''
     email: str
     data_inclusao: str = ''

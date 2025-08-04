@@ -38,6 +38,10 @@ def adicionar_funcionario(funcionario: FuncionarioCreate):
         cargo=funcionario.cargo,
         celular=funcionario.celular,
         email=funcionario.email,
+        cpf=funcionario.cpf,  # Novo campo
+        data_afastamento=funcionario.data_afastamento,  # Novo campo
+        tipo_contrato=funcionario.tipo_contrato,  # Novo campo
+        data_retorno=funcionario.data_retorno,  # Novo campo
         data_inclusao=data_inclusao,
         data_inativado=str(funcionario.data_inativado) if funcionario.data_inativado is not None else ''
     )
@@ -81,7 +85,11 @@ def adicionar_funcionario(funcionario: FuncionarioCreate):
         'grupos_email': [GrupoEmailOut.from_orm(grupo) for grupo in novo_funcionario.grupos_email],
         'grupos_pasta': [GrupoPastaOut.from_orm(grupo) for grupo in novo_funcionario.grupos_pasta],
         'data_inclusao': str(novo_funcionario.data_inclusao) if novo_funcionario.data_inclusao is not None else '',
-        'data_inativado': str(novo_funcionario.data_inativado) if novo_funcionario.data_inativado is not None else ''
+        'data_inativado': str(novo_funcionario.data_inativado) if novo_funcionario.data_inativado is not None else '',
+        'cpf': novo_funcionario.cpf,
+        'data_afastamento': str(novo_funcionario.data_afastamento) if novo_funcionario.data_afastamento else None,
+        'tipo_contrato': novo_funcionario.tipo_contrato,
+        'data_retorno': str(novo_funcionario.data_retorno) if novo_funcionario.data_retorno else None
     })
     db.close()
     return funcionario_schema
@@ -97,29 +105,6 @@ def get_funcionario_sistemas(id: int):
     db.close()
     return sistemas
 
-@router.get('/funcionarios/', response_model=list[FuncionarioSchema])
-def list_funcionarios():
-    db = SessionLocal()
-    funcionarios = db.query(FuncionarioModel).all()
-    resultado = []
-    for funcionario in funcionarios:
-        setores = [SetorOut.from_orm(setor) for setor in funcionario.setores]
-        sistemas = [SistemaSchema.from_orm(sistema) for sistema in funcionario.sistemas]
-        grupos_email = [GrupoEmailOut.from_orm(grupo) for grupo in funcionario.grupos_email]
-        grupos_pasta = [GrupoPastaOut.from_orm(grupo) for grupo in funcionario.grupos_pasta]
-        funcionario_schema = FuncionarioSchema.model_validate({
-            **funcionario.__dict__,
-            'setores': setores,
-            'sistemas': sistemas,
-            'grupos_email': grupos_email,
-            'grupos_pasta': grupos_pasta,
-            'data_inclusao': str(funcionario.data_inclusao) if funcionario.data_inclusao is not None else '',
-            'data_inativado': str(funcionario.data_inativado) if funcionario.data_inativado is not None else ''
-        })
-        resultado.append(funcionario_schema)
-    db.close()
-    return resultado
-
 @router.put('/funcionarios/{id}', response_model=FuncionarioSchema)
 def atualizar_funcionario(id: int, funcionario: FuncionarioCreate):
     db = SessionLocal()
@@ -132,6 +117,10 @@ def atualizar_funcionario(id: int, funcionario: FuncionarioCreate):
     db_funcionario.cargo = funcionario.cargo
     db_funcionario.celular = funcionario.celular
     db_funcionario.email = funcionario.email
+    db_funcionario.cpf = funcionario.cpf  # Novo campo
+    db_funcionario.data_afastamento = funcionario.data_afastamento  # Novo campo
+    db_funcionario.tipo_contrato = funcionario.tipo_contrato  # Novo campo
+    db_funcionario.data_retorno = funcionario.data_retorno  # Novo campo
     print(f"[LOG] Valor recebido para data_inativado: {funcionario.data_inativado} (type: {type(funcionario.data_inativado)})")
     if funcionario.data_inativado:
         db_funcionario.data_inativado = str(funcionario.data_inativado)
@@ -171,10 +160,41 @@ def atualizar_funcionario(id: int, funcionario: FuncionarioCreate):
         'grupos_email': [GrupoEmailOut.from_orm(grupo) for grupo in db_funcionario.grupos_email],
         'grupos_pasta': [GrupoPastaOut.from_orm(grupo) for grupo in db_funcionario.grupos_pasta],
         'data_inclusao': str(db_funcionario.data_inclusao) if db_funcionario.data_inclusao is not None else '',
-        'data_inativado': str(db_funcionario.data_inativado) if db_funcionario.data_inativado is not None else ''
+        'data_inativado': str(db_funcionario.data_inativado) if db_funcionario.data_inativado is not None else '',
+        'cpf': db_funcionario.cpf,
+        'data_afastamento': str(db_funcionario.data_afastamento) if db_funcionario.data_afastamento else None,
+        'tipo_contrato': db_funcionario.tipo_contrato,
+        'data_retorno': str(db_funcionario.data_retorno) if db_funcionario.data_retorno else None
     })
     db.close()
     return funcionario_schema
+
+@router.get('/funcionarios/', response_model=list[FuncionarioSchema])
+def list_funcionarios():
+    db = SessionLocal()
+    funcionarios = db.query(FuncionarioModel).all()
+    resultado = []
+    for funcionario in funcionarios:
+        setores = [SetorOut.from_orm(setor) for setor in funcionario.setores]
+        sistemas = [SistemaSchema.from_orm(sistema) for sistema in funcionario.sistemas]
+        grupos_email = [GrupoEmailOut.from_orm(grupo) for grupo in funcionario.grupos_email]
+        grupos_pasta = [GrupoPastaOut.from_orm(grupo) for grupo in funcionario.grupos_pasta]
+        funcionario_schema = FuncionarioSchema.model_validate({
+            **funcionario.__dict__,
+            'setores': setores,
+            'sistemas': sistemas,
+            'grupos_email': grupos_email,
+            'grupos_pasta': grupos_pasta,
+            'data_inclusao': str(funcionario.data_inclusao) if funcionario.data_inclusao is not None else '',
+            'data_inativado': str(funcionario.data_inativado) if funcionario.data_inativado is not None else '',
+            'cpf': funcionario.cpf,
+            'data_afastamento': str(funcionario.data_afastamento) if funcionario.data_afastamento else None,
+            'tipo_contrato': funcionario.tipo_contrato,
+            'data_retorno': str(funcionario.data_retorno) if funcionario.data_retorno else None
+        })
+        resultado.append(funcionario_schema)
+    db.close()
+    return resultado
 
 @router.delete('/funcionarios/{id}')
 def excluir_funcionario(id: int):

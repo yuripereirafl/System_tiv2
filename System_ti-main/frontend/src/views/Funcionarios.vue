@@ -3,6 +3,10 @@
     <div class="header header-funcionarios">
       <h2>Funcionários</h2>
       <div class="busca-adicionar">
+        <label style="display: flex; align-items: center; gap: 6px;">
+          <input type="checkbox" v-model="somenteAtivos" />
+          Mostrar apenas funcionários ativos
+        </label>
         <input v-model="buscaFuncionario" placeholder="Buscar funcionário..." class="input-busca" />
         <button class="btn-relatorio" @click="abrirModalRelatorio">📊 Relatórios</button>
         <button class="btn-cadastrar" @click="showForm = !showForm">
@@ -100,24 +104,48 @@
       <div class="form-modal">
         <h3>{{ editando ? 'Editar Funcionário' : 'Adicionar Funcionário' }}</h3>
         <form @submit.prevent="editando ? salvarEdicaoFuncionario() : cadastrarFuncionario()">
-          <div class="modal-row">
-            <div class="modal-col">
+          <!-- Bloco principal do formulário -->
+          <div class="form-grid">
+            <div>
+              <label>Nome</label>
               <input v-model="form.nome" placeholder="Nome" required />
-              <input v-model="form.sobrenome" placeholder="Sobrenome" required />
-              <input v-model="form.cargo" placeholder="Cargo" required />
-              <div v-if="!editando">
-                <label>Data de Admissão</label>
-                <input type="date" v-model="form.data_inclusao" required />
-              </div>
-              <div v-if="editando">
-                <label>Data de Desligamento	</label>
-                <input type="date" v-model="form.data_inativado" />
-                <button type="button" @click="inativarFuncionario" style="margin-top:6px;margin-left:4px;">Inativar hoje</button>
-              </div>
             </div>
-            <div class="modal-col">
+            <div>
+              <label>Sobrenome</label>
+              <input v-model="form.sobrenome" placeholder="Sobrenome" required />
+            </div>
+            <div>
+              <label>Cargo</label>
+              <input v-model="form.cargo" placeholder="Cargo" required />
+            </div>
+            <div>
+              <label>Tipo de Contrato</label>
+              <input v-model="form.tipo_contrato" placeholder="Tipo de Contrato" />
+            </div>
+            <div>
+              <label>CPF</label>
+              <input v-model="form.cpf" placeholder="CPF" />
+            </div>
+            <div>
+              <label>Celular</label>
               <input v-model="form.celular" placeholder="Celular" />
+            </div>
+            <div style="grid-column: span 2;">
+              <label>E-mail</label>
               <input v-model="form.email" placeholder="E-mail" required type="email" />
+            </div>
+            <div v-if="editando" style="grid-column: span 2;">
+              <label>Data de Desligamento</label>
+              <input type="date" v-model="form.data_inativado" />
+              <button type="button" @click="inativarFuncionario" style="width: 220px; margin-top: 8px;">Inativar hoje</button>
+            </div>
+            <div v-if="editando">
+              <label>Data de Afastamento</label>
+              <input type="date" v-model="form.data_afastamento" />
+            </div>
+            <div v-if="editando">
+              <label>Data de Retorno</label>
+              <input type="date" v-model="form.data_retorno" />
             </div>
           </div>
           <hr class="modal-divider" />
@@ -226,6 +254,10 @@ export default {
         cargo: '',
         celular: '',
         email: '',
+        cpf: '',                // Novo campo
+        tipo_contrato: '',      // Novo campo
+        data_afastamento: '',   // Novo campo
+        data_retorno: '',       // Novo campo
         grupo_email: '',
         setores_ids: [],
         sistemas_ids: [],
@@ -244,6 +276,7 @@ export default {
       novoGrupoPastaId: '',
       ordenacaoNome: 'asc',
       showModalRelatorio: false,
+      somenteAtivos: true, // filtro padrão ativado
     }
   },
   computed: {
@@ -280,6 +313,10 @@ export default {
             gruposPasta.includes(busca)
           );
         });
+      }
+      // Filtra apenas funcionários ativos, se selecionado
+      if (this.somenteAtivos) {
+        lista = lista.filter(f => !f.data_inativado);
       }
       // Ordena por nome, asc ou desc
       return lista.slice().sort((a, b) => {
@@ -430,6 +467,8 @@ export default {
         cargo: this.form.cargo,
         celular: this.form.celular,
         email: this.form.email || '',
+        cpf: this.form.cpf,
+        tipo_contrato: this.form.tipo_contrato,
         grupos_email_ids: [...this.form.grupos_email_ids],
         setores_ids: [...this.form.setores_ids],
         sistemas_ids: [...this.form.sistemas_ids],
@@ -450,6 +489,10 @@ export default {
         cargo: '',
         celular: '',
         email: '',
+        cpf: '',                // Novo campo
+        tipo_contrato: '',      // Novo campo
+        data_afastamento: '',   // Novo campo
+        data_retorno: '',       // Novo campo
         grupo_email: '',
         setores_ids: [],
         sistemas_ids: [],
@@ -483,13 +526,9 @@ export default {
       this.sistemas = res.data;
     },
     abrirEditar(func) {
-      // Garante formato yyyy-mm-dd para o input de data
       let dataInativado = '';
-      if (func.data_inativado) {
-        // Se vier no formato ISO, pega só a data
-        if (func.data_inativado.length >= 10) {
-          dataInativado = func.data_inativado.slice(0, 10);
-        }
+      if (func.data_inativado && func.data_inativado.length >= 10) {
+        dataInativado = func.data_inativado.slice(0, 10);
       }
       this.form = {
         nome: func.nome,
@@ -503,12 +542,15 @@ export default {
         grupos_email_ids: func.grupos_email ? func.grupos_email.map(g => g.id) : [],
         grupos_pasta_ids: func.grupos_pasta ? func.grupos_pasta.map(g => g.id) : [],
         data_inclusao: func.data_inclusao || '',
-        data_inativado: dataInativado || ''
+        data_inativado: dataInativado || '',
+        cpf: func.cpf || '',                       // Adicione aqui
+        tipo_contrato: func.tipo_contrato || '',   // Adicione aqui
+        data_afastamento: func.data_afastamento || '', // Adicione aqui
+        data_retorno: func.data_retorno || ''      // Adicione aqui
       };
       this.funcionarioEditId = func.id;
       this.editando = true;
       this.showForm = true;
-      // Buscar sistemas vinculados ao funcionário
       axios.get(`${API_BASE_URL}/funcionarios/${func.id}/sistemas`).then(res => {
         this.form.sistemas_ids = res.data.map(s => s.id);
       });
@@ -533,6 +575,10 @@ export default {
         cargo: this.form.cargo,
         celular: this.form.celular,
         email: this.form.email || '',
+        cpf: this.form.cpf,                      // Adicione aqui
+        tipo_contrato: this.form.tipo_contrato,  // Adicione aqui
+        data_afastamento: this.form.data_afastamento, // Adicione aqui
+        data_retorno: this.form.data_retorno,    // Adicione aqui
         grupos_email_ids: [...this.form.grupos_email_ids],
         setores_ids: [...this.form.setores_ids],
         sistemas_ids: [...this.form.sistemas_ids],
@@ -775,6 +821,10 @@ tbody tr:last-child td {
   z-index: 1000;
 }
 .form-modal {
+  margin: 0 auto; /* Centraliza horizontalmente */
+  display: flex;
+  flex-direction: column;
+  align-items: center; /* Centraliza conteúdo verticalmente */
   background: var(--cor-branco);
   border: 1px solid var(--cor-sec1);
   border-radius: 12px;
@@ -1008,5 +1058,19 @@ tbody tr:last-child td {
   }
 }
 
+.form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+  margin-bottom: 24px;
+}
+.form-grid > div {
+  width: 100%;
+}
+@media (max-width: 700px) {
+  .form-grid {
+    grid-template-columns: 1fr;
+  }
+}
 </style>
 

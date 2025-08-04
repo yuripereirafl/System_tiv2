@@ -19,5 +19,4 @@ def get_db():
     finally:
         db.close()
 
-# Garante que todos os modelos sejam importados antes de criar as tabelas
 Base.metadata.create_all(bind=engine)

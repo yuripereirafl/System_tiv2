@@ -1,4 +1,3 @@
-
 from sqlalchemy import Column, Integer, String, Table, ForeignKey
 from sqlalchemy.orm import relationship
 from app.models.base import Base
@@ -39,6 +38,10 @@ class Funcionario(Base):
     email = Column(String, nullable=False)
     data_inclusao = Column(String, nullable=True)
     data_inativado = Column(String, nullable=True)
+    cpf = Column(String, unique=True)  # Novo campo
+    data_afastamento = Column(String, nullable=True)  # Novo campo
+    tipo_contrato = Column(String, nullable=True)     # Novo campo
+    data_retorno = Column(String, nullable=True)      # Novo campo
     setores = relationship("Setor", secondary=funcionario_setor, backref="funcionarios")
     sistemas = relationship("Sistema", secondary=funcionario_sistema, backref="funcionarios")
     grupos_email = relationship("GrupoEmail", secondary=funcionario_grupo_email, backref="funcionarios")

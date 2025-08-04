@@ -1,4 +1,3 @@
-
 from typing import List, Optional
 from pydantic import BaseModel
 from app.schemas.sistema import Sistema
@@ -18,6 +17,10 @@ class FuncionarioBase(BaseModel):
     email: str
     data_inclusao: str = ''
     data_inativado: str = ''
+    cpf: Optional[str] = None
+    data_afastamento: Optional[str] = None
+    tipo_contrato: Optional[str] = None
+    data_retorno: Optional[str] = None
 
 class FuncionarioCreate(FuncionarioBase):
     pass
@@ -30,5 +33,9 @@ class Funcionario(FuncionarioBase):
     grupos_pasta: List[GrupoPastaOut] = []
     data_inclusao: str = ''
     data_inativado: str = ''
+    cpf: Optional[str] = None
+    data_afastamento: Optional[str] = None
+    tipo_contrato: Optional[str] = None
+    data_retorno: Optional[str] = None
     class Config:
         from_attributes = True

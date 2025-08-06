@@ -115,20 +115,24 @@
               <input v-model="form.sobrenome" placeholder="Sobrenome" required />
             </div>
             <div>
-              <label>Cargo</label>
-              <input v-model="form.cargo" placeholder="Cargo" required />
-            </div>
-            <div>
-              <label>Tipo de Contrato</label>
-              <input v-model="form.tipo_contrato" placeholder="Tipo de Contrato" />
+              <label>Celular</label>
+              <input v-model="form.celular" placeholder="Celular" />
             </div>
             <div>
               <label>CPF</label>
               <input v-model="form.cpf" placeholder="CPF" />
             </div>
             <div>
-              <label>Celular</label>
-              <input v-model="form.celular" placeholder="Celular" />
+              <label>Data de Admissão</label>
+              <input type="date" v-model="form.data_inclusao" />
+            </div>
+            <div>
+              <label>Cargo</label>
+              <input v-model="form.cargo" placeholder="Cargo" required />
+            </div>
+            <div>
+              <label>Tipo de Contrato</label>
+              <input v-model="form.tipo_contrato" placeholder="Tipo de Contrato" />
             </div>
             <div style="grid-column: span 2;">
               <label>E-mail</label>

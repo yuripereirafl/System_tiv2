@@ -4,21 +4,18 @@ from app.models.base import Base
 from app.models.grupo_email import GrupoEmail
 
 
-# Tabela associativa para setores
 funcionario_setor = Table(
     'funcionario_setor', Base.metadata,
     Column('funcionario_id', Integer, ForeignKey('funcionarios.id')),
     Column('setor_id', Integer, ForeignKey('setores.id'))
 )
 
-# Tabela associativa para sistemas
 funcionario_sistema = Table(
     'funcionario_sistema', Base.metadata,
     Column('funcionario_id', Integer, ForeignKey('funcionarios.id')),
     Column('sistema_id', Integer, ForeignKey('sistemas.id'))
 )
 
-# Tabela associativa para grupos de e-mail
 funcionario_grupo_email = Table(
     'funcionario_grupo_email', Base.metadata,
     Column('funcionario_id', Integer, ForeignKey('funcionarios.id')),
